@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Duẩn AI.com</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b0f19;
+  color: white;
+  height: 100vh;
+}
+
+.app {
+  max-width: 800px;
+  height: 100vh;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 16px;
+  border-bottom: 1px solid #252b3a;
+  background: #101522;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  width: 45px;
+  height: 45px;
+  border-radius: 14px;
+  background: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.title {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.title span {
+  color: #4da3ff;
+}
+
+.status {
+  font-size: 12px;
+  color: #53d769;
+  margin-top: 3px;
+}
+
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.welcome {
+  text-align: center;
+  margin-top: 80px;
+}
+
+.welcome .big {
+  font-size: 55px;
+}
+
+.welcome h1 {
+  font-size: 28px;
+  margin: 15px 0 8px;
+}
+
+.welcome h1 span {
+  color: #4da3ff;
+}
+
+.welcome p {
+  color: #9ca3af;
+}
+
+.dev {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.message {
+  display: flex;
+  margin: 14px 0;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 12px 15px;
+  border-radius: 16px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.user .bubble {
+  background: #2563eb;
+  border-bottom-right-radius: 5px;
+}
+
+.ai .bubble {
+  background: #171d2b;
+  border-bottom-left-radius: 5px;
+}
+
+.input-area {
+  padding: 12px;
+  border-top: 1px solid #252b3a;
+  background: #101522;
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  flex: 1;
+  padding: 14px;
+  border: 1px solid #30384a;
+  border-radius: 14px;
+  background: #171d2b;
+  color: white;
+  outline: none;
+  font-size: 16px;
+}
+
+button {
+  width: 52px;
+  border: 0;
+  border-radius: 14px;
+  background: #2563eb;
+  color: white;
+  font-size: 20px;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.loading {
+  opacity: 0.6;
+}
+
+@media (max-width: 600px) {
+  .chat {
+    padding: 14px;
+  }
+
+  .welcome {
+    margin-top: 50px;
+  }
+
+  .welcome h1 {
+    font-size: 24px;
+  }
+
+  .bubble {
+    max-width: 88%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<header>
+  <div class="logo">🤖</div>
+
+  <div>
+    <div class="title">
+      Duẩn <span>AI.com</span>
+    </div>
+
+    <div class="status">
+      ● Đang hoạt động
+    </div>
+  </div>
+</header>
+
+<div class="chat" id="chat">
+
+  <div class="welcome" id="welcome">
+    <div class="big">🤖</div>
+
+    <h1>
+      Xin chào, tôi là <span>Duẩn AI.com</span>
+    </h1>
+
+    <p>
+      Bạn muốn hỏi gì? Tôi sẽ cố gắng giúp bạn.
+    </p>
+
+    <div class="dev">
+      Được phát triển bởi Phú Cường
+    </div>
+  </div>
+
+</div>
+
+<div class="input-area">
+
+  <input
+    id="message"
+    type="text"
+    placeholder="Nhập câu hỏi..."
+    autocomplete="off"
+  >
+
+  <button onclick="sendMessage()">
+    ➤
+  </button>
+
+</div>
+
+</div>
+
+<script>
+
+const input = document.getElementById("message");
+const chat = document.getElementById("chat");
+const welcome = document.getElementById("welcome");
+
+input.addEventListener("keydown", function(event) {
+  if (event.key === "Enter") {
+    sendMessage();
+  }
+});
+
+function addMessage(text, type) {
+
+  const message = document.createElement("div");
+
+  message.className = "message " + type;
+
+  const bubble = document.createElement("div");
+
+  bubble.className = "bubble";
+
+  bubble.textContent = text;
+
+  message.appendChild(bubble);
+
+  chat.appendChild(message);
+
+  chat.scrollTop = chat.scrollHeight;
+
+  return message;
+}
+
+async function sendMessage() {
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  if (welcome) {
+    welcome.style.display = "none";
+  }
+
+  input.value = "";
+
+  addMessage(text, "user");
+
+  const loading = addMessage("Duẩn AI đang suy nghĩ...", "ai");
+
+  loading.querySelector(".bubble").classList.add("loading");
+
+  try {
+
+    const response = await fetch(
+      "/.netlify/functions/chat",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          message: text
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    loading.remove();
+
+    if (!response.ok) {
+      addMessage(
+        data.error || "Có lỗi xảy ra.",
+        "ai"
+      );
+      return;
+    }
+
+    addMessage(
+      data.reply || "AI không trả về câu trả lời.",
+      "ai"
+    );
+
+  } catch (error) {
+
+    loading.remove();
+
+    addMessage(
+      "Không thể kết nối với Duẩn AI. Hãy kiểm tra Netlify.",
+      "ai"
+    );
+
+    console.error(error);
+  }
+}
+
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+</head>
+
+<body>
+  
+</body>
+
+</html>
